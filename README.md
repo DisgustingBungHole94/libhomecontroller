@@ -5,7 +5,9 @@
 Make sure you have G++, Clang, Node.js, npm, and npx installed.
 
 ```sh
-make
+git clone https://github.com/DisgustingBungHole94/libhomecontroller.git
+
+cd HomeController_server && make
 ```
 
 This will automatically compile all dependencies as well and create the file 'bin/libhomecontroller.so'. All include files can be found in 'include/homecontroller'.
