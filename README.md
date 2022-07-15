@@ -5,7 +5,7 @@
 Make sure you have G++, Clang, Node.js, npm, and npx installed.
 
 ```sh
-git clone https://github.com/DisgustingBungHole94/libhomecontroller.git
+git clone https://github.com/DisgustingBungHole94/libhomecontroller.git --recursive
 
 cd HomeController_server && make
 ```
