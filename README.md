@@ -1,9 +1,5 @@
 # libhomecontroller
 
-## What is HomeController?
-
-HomeController can manage smart devices built with the [libhomecontroller](https://github.com/DisgustingBungHole94/libhomecontroller) library. 
-
 ## Build Instructions
 
 Make sure you have G++, Clang, Node.js, npm, and npx installed.
@@ -29,6 +25,7 @@ class MyDevice : public hc::Device {
 
         /*
             Messages from the HomeController server are received as a vector of bytes.
+            
             Overload the onMessage function and return a byte vector to respond to
             the server!
         */
@@ -57,7 +54,12 @@ int main() {
         device.login("username", "password");
 
         /*
-            A device only needs to be registered once. The registerDevice function will return a unique ID that can be saved and reused. For example, the ID can be saved to a file and retrieved.
+            A device only needs to be registered once.
+
+            The registerDevice function will return a unique ID 
+            that can be saved and reused. 
+
+            For example, the ID can be saved to a file and retrieved.
         */
         std::string id = device.registerDevice("Device Name", "device_type");
 
@@ -72,3 +74,4 @@ int main() {
 
     return 0;
 }
+```
