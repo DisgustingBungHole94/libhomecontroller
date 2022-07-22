@@ -1,6 +1,3 @@
-[submodule "llhttp"]
-	path = llhttp
-	url = https://github.com/nodejs/llhttp
-[submodule "rapidjson"]
-	path = rapidjson
-	url = https://github.com/Tencent/rapidjson
+[submodule "thirdparty/rapidjson"]
+	path = thirdparty/rapidjson
+	url = https://github.com/Tencent/rapidjson/

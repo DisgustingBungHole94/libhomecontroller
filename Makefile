@@ -1,46 +1,52 @@
-INCDIR=include/homecontroller
-SRCDIR=src
+SRCDIR = src
+STRUCTURE = $(shell find $(SRCDIR) -type d)
 
-IDIRS = -I./include -I./rapidjson/include -I./llhttp/build
-LDIR = lib
+DEPSDIR = thirdparty
 
-CXX=g++
-CXXFLAGS=-g -fPIC $(IDIRS) -L$(LDIR) -Wl,-rpath,./$(LDIR)
+INCLUDES += -Iinclude/
+INCLUDES += -I$(DEPSDIR)/rapidjson/include/
 
-TARGET=bin/libhomecontroller.so
-ODIR=bin/obj
+CXX ?= g++
+CXXFLAGS ?= -g -fPIC $(INCLUDES)
 
-LIBS= -lllhttp
+BINARYDIR = bin
+OBJECTDIR = $(BINARYDIR)/obj
 
-_DEPS =	http_parser.h tls_client.h device.h
-DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
+TARGET = $(BINARYDIR)/libhomecontroller.so
 
-_OBJ = http_parser.o tls_client.o device.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+LIBS += -lllhttp
+LIBS += -lpthread
+LIBS += -lssl
+LIBS += -lcrypto
+LIBS += -lboost_system
+LIBS += -lboost_random
 
-$(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) | bin
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
+LIBDIR = /usr/local/lib
+INCDIR = /usr/local/include
 
-$(TARGET): llhttp/build/libllhttp.a $(OBJ)
+SOURCES := $(shell find $(SRCDIR) -name '*.cpp')
+
+OBJECTS := $(addprefix $(OBJECTDIR)/,$(SOURCES:%.cpp=%.o))
+
+$(OBJECTDIR)/%.o: | $(OBJECTDIR)
+	$(CXX) -c -o $@ $*.cpp $(CXXFLAGS)
+
+$(TARGET): $(OBJECTS)
 	$(CXX) -shared -o $@ $^ $(CXXFLAGS) $(LIBS)
 
-bin:
-	mkdir $@
-	mkdir $@/obj
+$(OBJECTDIR):
+	mkdir -p $(OBJECTDIR)
+	mkdir -p $(addprefix $(OBJECTDIR)/,$(STRUCTURE))
 
-llhttp/build/libllhttp.a:
-	cd llhttp && npm install
-	cd llhttp && make
-	mkdir lib
-	cd lib && ln -s ../llhttp/build/libllhttp.a libllhttp.a
+install: $(TARGET)
+	cp -r include/homecontroller $(INCDIR)
+	cp $(TARGET) $(LIBDIR)/libhomecontroller.so
 
-.PHONY: clean
+uninstall:
+	rm -r $(INCDIR)/homecontroller
+	rm $(LIBDIR)/libhomecontroller.so
 
 clean:
-	find $(ODIR) -type f -name '*.o' -delete
-	rm -f $(TARGET)
+	rm -rf bin
 
-cleanall: clean
-	rm -r bin
-	rm -r lib
-	cd llhttp && make clean
+.PHONY: clean

@@ -2,15 +2,20 @@
 
 ## Build Instructions
 
-Make sure you have G++, Clang, Node.js, npm, and npx installed.
+You must install [llhttp](https://github.com/nodejs/llhttp) to build libhomecontroller.
 
 ```sh
 git clone https://github.com/DisgustingBungHole94/libhomecontroller.git --recursive
-
-cd HomeController_server && make
+cd libhomecontroller
+make
+sudo make install
 ```
 
-This will automatically compile all dependencies as well and create the file 'bin/libhomecontroller.so'. All include files can be found in 'include/homecontroller'.
+To uninstall libhomecontroller:
+
+```sh
+sudo make uninstall
+```
 
 ## Usage
 
