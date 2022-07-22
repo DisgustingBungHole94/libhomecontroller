@@ -5,7 +5,7 @@
 You must install [llhttp](https://github.com/nodejs/llhttp) and [RapidJSON](https://github.com/Tencent/rapidjson) to build libhomecontroller.
 
 ```sh
-git clone https://github.com/DisgustingBungHole94/libhomecontroller.git --recursive
+git clone https://github.com/DisgustingBungHole94/libhomecontroller.git
 cd libhomecontroller
 make
 sudo make install
