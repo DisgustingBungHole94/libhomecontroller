@@ -2,7 +2,7 @@
 
 ## Build Instructions
 
-You must install [llhttp](https://github.com/nodejs/llhttp) to build libhomecontroller.
+You must install [llhttp](https://github.com/nodejs/llhttp) and [RapidJSON](https://github.com/Tencent/rapidjson) to build libhomecontroller.
 
 ```sh
 git clone https://github.com/DisgustingBungHole94/libhomecontroller.git --recursive

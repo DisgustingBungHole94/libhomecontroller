@@ -1,10 +1,7 @@
 SRCDIR = src
 STRUCTURE = $(shell find $(SRCDIR) -type d)
 
-DEPSDIR = thirdparty
-
 INCLUDES += -Iinclude/
-INCLUDES += -I$(DEPSDIR)/rapidjson/include/
 
 CXX ?= g++
 CXXFLAGS ?= -g -fPIC $(INCLUDES)
