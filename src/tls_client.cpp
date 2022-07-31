@@ -9,7 +9,7 @@
 
 namespace hc {
     TLSClient::TLSClient() 
-        : m_clientFinished(false)
+        : m_clientFinished(true)
     {}
 
     TLSClient::~TLSClient() {}
@@ -26,6 +26,8 @@ namespace hc {
         if (m_ssl == nullptr) {
             throw Exception("failed to init SSL: " + getSSLError(), "TLSCLient::init");
         }
+
+        m_clientFinished = false;
     }
 
     void TLSClient::connect(const std::string& host, const std::string& port) {

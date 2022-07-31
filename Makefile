@@ -1,32 +1,39 @@
 SRCDIR = src
-STRUCTURE = $(shell find $(SRCDIR) -type d)
+STRUCTURE = $(shell cd $(SRCDIR) && find . -type d)
 
-INCLUDES += -Iinclude/
+INCDIRNAME = homecontroller
+INCDIR = include/$(INCDIRNAME)
 
 CXX ?= g++
-CXXFLAGS ?= -g -fPIC $(INCLUDES)
+CXXFLAGS ?= -g -fPIC -I$(INCDIR)
 
 BINARYDIR = bin
 OBJECTDIR = $(BINARYDIR)/obj
 
-TARGET = $(BINARYDIR)/libhomecontroller.so
+TARGETNAME = libhomecontroller.so
+TARGET = $(BINARYDIR)/$(TARGETNAME)
 
 LIBS += -lllhttp
-LIBS += -lpthread
 LIBS += -lssl
-LIBS += -lcrypto
-LIBS += -lboost_system
-LIBS += -lboost_random
 
-LIBDIR = /usr/local/lib
-INCDIR = /usr/local/include
+LIBINSTALLDIR = /usr/local/lib
+INCINSTALLDIR = /usr/local/include
 
-SOURCES := $(shell find $(SRCDIR) -name '*.cpp')
+# src root
+_OBJECTS += device.o
+_HEADERS += device.h
 
-OBJECTS := $(addprefix $(OBJECTDIR)/,$(SOURCES:%.cpp=%.o))
+_OBJECTS += http_parser.o
+_HEADERS += http_parser.h
 
-$(OBJECTDIR)/%.o: | $(OBJECTDIR)
-	$(CXX) -c -o $@ $*.cpp $(CXXFLAGS)
+_OBJECTS += tls_client.o
+_HEADERS += tls_client.h
+
+OBJECTS = $(patsubst %,$(OBJECTDIR)/%,$(_OBJECTS))
+HEADERS = $(patsubst %,$(INCDIR)/%,$(_HEADERS))
+
+$(OBJECTDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS) | $(OBJECTDIR)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) -shared -o $@ $^ $(CXXFLAGS) $(LIBS)
@@ -36,12 +43,12 @@ $(OBJECTDIR):
 	mkdir -p $(addprefix $(OBJECTDIR)/,$(STRUCTURE))
 
 install: $(TARGET)
-	cp -r include/homecontroller $(INCDIR)
-	cp $(TARGET) $(LIBDIR)/libhomecontroller.so
+	cp -r $(INCDIR) $(INCINSTALLDIR)
+	cp $(TARGET) $(LIBINSTALLDIR)/$(TARGETNAME)
 
 uninstall:
-	rm -r $(INCDIR)/homecontroller
-	rm $(LIBDIR)/libhomecontroller.so
+	rm -r $(INCINSTALLDIR)/$(INCDIRNAME)
+	rm $(LIBINSTALLDIR)/$(TARGETNAME)
 
 clean:
 	rm -rf bin

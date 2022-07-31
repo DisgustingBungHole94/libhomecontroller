@@ -8,7 +8,7 @@
 
 namespace hc {
     const std::string Device::_API_HOST = "api.bunghole.lol";
-    const std::string Device::_API_PORT = "4433"; 
+    const std::string Device::_API_PORT = "4434"; 
 
     Device::Device() 
         : m_sessionToken(""), m_deviceId(""), m_running(false)
