@@ -1,8 +1,8 @@
 SRCDIR = src
 STRUCTURE = $(shell cd $(SRCDIR) && find . -type d)
 
+INCDIR = include
 INCDIRNAME = homecontroller
-INCDIR = include/$(INCDIRNAME)
 
 CXX ?= g++
 CXXFLAGS ?= -g -fPIC -I$(INCDIR)
@@ -19,18 +19,77 @@ LIBS += -lssl
 LIBINSTALLDIR = /usr/local/lib
 INCINSTALLDIR = /usr/local/include
 
-# src root
-_OBJECTS += device.o
-_HEADERS += device.h
+# app
+_OBJECTS += app/device.o
+_HEADERS += app/device.h
 
-_OBJECTS += http_parser.o
-_HEADERS += http_parser.h
+_OBJECTS += app/session.o
+_HEADERS += app/session.h
 
-_OBJECTS += tls_client.o
-_HEADERS += tls_client.h
+_OBJECTS += app/user.o
+_HEADERS += app/user.h
+
+# exception
+_HEADERS += exception/exception.h
+_HEADERS += exception/socket_close_exception.h
+_HEADERS += exception/socket_timeout_exception.h
+
+# http
+_OBJECTS += http/http_request.o
+_HEADERS += http/http_request.h
+
+_OBJECTS += http/http_response.o
+_HEADERS += http/http_response.h
+
+_OBJECTS += http/http_parser.o
+_HEADERS += http/http_parser.h
+
+# net/ssl
+_OBJECTS += net/ssl/ssl.o
+_HEADERS += net/ssl/ssl.h
+
+_OBJECTS += net/ssl/tls_connection.o
+_HEADERS += net/ssl/tls_connection.h
+
+_OBJECTS += net/ssl/tls_client.o
+_HEADERS += net/ssl/tls_client.h
+
+_OBJECTS += net/ssl/tls_server.o
+_HEADERS += net/ssl/tls_server.h
+
+# net
+_OBJECTS += net/protocol_handler.o
+_HEADERS += net/protocol_handler.h
+
+# thread
+_OBJECTS += thread/thread_pool.o
+_HEADERS += thread/thread_pool.h
+
+# util
+_OBJECTS += util/logger.o
+_HEADERS += util/logger.h
+
+_OBJECTS += util/string.o
+_HEADERS += util/string.h
+
+_OBJECTS += util/config.o
+_HEADERS += util/config.h
+
+_OBJECTS += util/timer.o
+_HEADERS += util/timer.h
+
+# ws
+_OBJECTS += ws/ws_connection.o
+_HEADERS += ws/ws_connection.h
+
+_OBJECTS += ws/ws_client.o
+_HEADERS += ws/ws_client.h
+
+_OBJECTS += ws/ws_server.o
+_HEADERS += ws/ws_server.h
 
 OBJECTS = $(patsubst %,$(OBJECTDIR)/%,$(_OBJECTS))
-HEADERS = $(patsubst %,$(INCDIR)/%,$(_HEADERS))
+HEADERS = $(patsubst %,$(INCDIR)/$(INCDIRNAME)/%,$(_HEADERS))
 
 $(OBJECTDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS) | $(OBJECTDIR)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
@@ -43,7 +102,7 @@ $(OBJECTDIR):
 	mkdir -p $(addprefix $(OBJECTDIR)/,$(STRUCTURE))
 
 install: $(TARGET)
-	cp -r $(INCDIR) $(INCINSTALLDIR)
+	cp -r $(INCDIR)/$(INCDIRNAME) $(INCINSTALLDIR)
 	cp $(TARGET) $(LIBINSTALLDIR)/$(TARGETNAME)
 
 uninstall:

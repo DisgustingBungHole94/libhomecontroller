@@ -1,6 +1,6 @@
-#include "homecontroller/device.h"
+#include "homecontroller/app/device.h"
 
-#include "homecontroller/exception.h"
+/*#include "homecontroller/exception.h"
 
 #include <rapidjson/error/en.h>
 #include <iostream>
@@ -178,4 +178,4 @@ namespace hc {
 
         return document;
     }
-}
+}*/
