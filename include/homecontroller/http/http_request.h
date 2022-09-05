@@ -22,30 +22,30 @@ namespace http {
             
             ~http_request() {}
 
-            void setMethod(const std::string& method) { m_method = method; }
-            const std::string& getMethod() { return m_method; }
+            void set_method(const std::string& method) { m_method = method; }
+            const std::string& get_method() { return m_method; }
 
-            void setUrl(const std::string& url) { m_url = url; }
-            const std::string& getUrl() { return m_url; }
+            void set_url(const std::string& url) { m_url = url; }
+            const std::string& get_url() { return m_url; }
 
-            void setBody(const std::string& body) { m_body = body; }
-            const std::string& getBody() { return m_body; }
+            void set_body(const std::string& body) { m_body = body; }
+            const std::string& get_body() { return m_body; }
 
-            void setShouldUpgrade(bool shouldUpgrade) { m_shouldUpgrade = shouldUpgrade; }
-            bool shouldUpgrade() { return m_shouldUpgrade; }
+            void set_should_upgrade(bool should_upgrade) { m_should_upgrade = should_upgrade; }
+            bool should_upgrade() { return m_should_upgrade; }
 
-            void setHeaders(const std::map<std::string, std::string>& headers) { m_headers = headers; }
-            void addHeader(const std::string& name, const std::string& value);
-            bool getHeader(const std::string& name, std::string& valueRef);
+            void set_headers(const std::map<std::string, std::string>& headers) { m_headers = headers; }
+            void add_header(const std::string& name, const std::string& value);
+            bool get_header(const std::string& name, std::string& value_ref);
 
-            std::string toString();
+            std::string str();
 
         private:
             std::string m_method;
             std::string m_url;
             std::string m_body;
 
-            bool m_shouldUpgrade;
+            bool m_should_upgrade;
 
             std::map<std::string, std::string> m_headers;
     };

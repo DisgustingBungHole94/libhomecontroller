@@ -12,10 +12,14 @@ namespace ssl {
             ~tls_client() {}
 
             void init();
-            std::unique_ptr<hc::net::ssl::tls_connection> connect(const std::string& host, const std::string& port);
+            void connect(const std::string& host, const std::string& port);
+
+            connection_ptr get_connection() { return m_conn; }
 
         private:
-            hc::net::ssl::unique_ptr<SSL_CTX> m_sslCtx;
+            unique_ptr<SSL_CTX> m_sslCtx;
+
+            connection_ptr m_conn;       
     };
 
 }

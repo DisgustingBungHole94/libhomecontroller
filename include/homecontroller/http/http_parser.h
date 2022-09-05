@@ -24,8 +24,8 @@ namespace http {
             void init(parser_type type);
             bool parse(const std::string& data);
 
-            hc::http::http_request getRequest();
-            hc::http::http_response getResponse();
+            hc::http::http_request get_request();
+            hc::http::http_response get_response();
 
             bool finished() { return m_data.m_finished; }
 
@@ -43,7 +43,7 @@ namespace http {
 
                 std::string m_body = "";
 
-                std::string m_lastHeaderField = "";
+                std::string m_last_header_field = "";
                 std::map<std::string, std::string> m_headers;
 
                 bool m_upgrade = false;

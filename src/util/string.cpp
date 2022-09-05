@@ -6,7 +6,7 @@ namespace hc {
 namespace util {
 namespace str {
 
-    std::string toLowerCase(std::string str) {
+    std::string to_lower_case(std::string str) {
         std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
             return std::tolower(c);
         });
@@ -14,7 +14,7 @@ namespace str {
         return str;
     }
 
-    std::vector<std::string> splitString(std::string str, char delim) {
+    std::vector<std::string> split_string(std::string str, char delim) {
         std::size_t pos = 0;
         std::vector<std::string> tokens;
 

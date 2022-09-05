@@ -7,24 +7,24 @@
 namespace hc {
 namespace thread {
     
-    void thread_pool::start(int numThreads) {
-        if (numThreads <= 0) {
-            throw hc::exception("invalid pool size", "hc::thread::thread_pool::start");
+    void thread_pool::start(int num_threads) {
+        if (num_threads <= 0) {
+            throw exception("invalid pool size", "hc::thread::thread_pool::start");
         }
 
-        m_threads.resize(numThreads);
+        m_threads.resize(num_threads);
 
-        for (int i = 0; i < numThreads; i++) {
-            m_threads.at(i) = std::thread(&thread_pool::workerLoop, this);
+        for (int i = 0; i < num_threads; i++) {
+            m_threads.at(i) = std::thread(&thread_pool::worker_loop, this);
         }
 
-        m_logger.dbg("created " + std::to_string(numThreads) + " threads");
+        m_logger.dbg("created " + std::to_string(num_threads) + " threads");
     }
 
     void thread_pool::stop() {
         std::unique_lock<std::mutex> lock(m_mutex);
 
-        m_shouldTerminate = true;
+        m_should_terminate = true;
 
         lock.unlock();
         m_cv.notify_all();
@@ -36,40 +36,40 @@ namespace thread {
         m_threads.clear();
     }
 
-    void thread_pool::addJob(job job) {
+    void thread_pool::add_job(job job) {
         std::unique_lock<std::mutex> lock(m_mutex);
 
-        m_jobQueue.push(job);
+        m_job_queue.push(job);
         m_cv.notify_one();
     }
 
-    void thread_pool::workerLoop() {
+    void thread_pool::worker_loop() {
         while(true) {
             std::unique_lock<std::mutex> lock(m_mutex);
 
             m_cv.wait(lock, [this] {
-                return !m_jobQueue.empty() || m_shouldTerminate;
+                return !m_job_queue.empty() || m_should_terminate;
             });
 
-            if (m_shouldTerminate) {
+            if (m_should_terminate) {
                 return;
             }
 
             std::thread::id id = std::this_thread::get_id();
 
-            m_logger.dbg("thread [" + threadIdToString(id) + "] started job");
+            m_logger.dbg("thread [" + thread_id_to_string(id) + "] started job");
 
-            job job = m_jobQueue.front();
-            m_jobQueue.pop();
+            job job = m_job_queue.front();
+            m_job_queue.pop();
 
             lock.unlock();
             job();
 
-            m_logger.dbg("thread [" + threadIdToString(id) + "] finished job");
+            m_logger.dbg("thread [" + thread_id_to_string(id) + "] finished job");
         }
     }
 
-    std::string thread_pool::threadIdToString(std::thread::id id) {
+    std::string thread_pool::thread_id_to_string(std::thread::id id) {
         std::ostringstream ss;
         ss << id;
 

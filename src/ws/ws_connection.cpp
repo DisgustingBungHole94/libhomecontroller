@@ -6,21 +6,21 @@ namespace hc {
 namespace ws {
     
     template<class config>
-    void websocket_connection<config>::upgrade(const std::string& upgradeRequest) {
-        m_wsConnection->read_all(upgradeRequest.c_str(), upgradeRequest.length());
+    void websocket_connection<config>::upgrade(const std::string& upgrade_request) {
+        m_ws_conn_ptr->read_all(upgrade_request.c_str(), upgrade_request.length());
     }
 
     template<class config>
     void websocket_connection<config>::start() {
-        m_wsConnection->set_vector_write_handler(std::bind(&websocket_connection::onVectorWrite, this, std::placeholders::_1, std::placeholders::_2));
-        m_wsConnection->set_write_handler(std::bind(&websocket_connection::onWrite, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        m_ws_conn_ptr->set_vector_write_handler(std::bind(&websocket_connection::on_vector_write, this, std::placeholders::_1, std::placeholders::_2));
+        m_ws_conn_ptr->set_write_handler(std::bind(&websocket_connection::on_write, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-        m_wsConnection->set_open_handler(std::bind(&websocket_connection::onOpen, this, std::placeholders::_1));
-        m_wsConnection->set_fail_handler(std::bind(&websocket_connection::onFail, this, std::placeholders::_1));
-        m_wsConnection->set_close_handler(std::bind(&websocket_connection::onClose, this, std::placeholders::_1));
-        m_wsConnection->set_message_handler(std::bind(&websocket_connection::onMessage, this, std::placeholders::_1, std::placeholders::_2));
+        m_ws_conn_ptr->set_open_handler(std::bind(&websocket_connection::on_open, this, std::placeholders::_1));
+        m_ws_conn_ptr->set_fail_handler(std::bind(&websocket_connection::on_fail, this, std::placeholders::_1));
+        m_ws_conn_ptr->set_close_handler(std::bind(&websocket_connection::on_close, this, std::placeholders::_1));
+        m_ws_conn_ptr->set_message_handler(std::bind(&websocket_connection::_on_message, this, std::placeholders::_1, std::placeholders::_2));
     
-        m_wsConnection->start();
+        m_ws_conn_ptr->start();
     }
 
     template<class config>
@@ -31,11 +31,11 @@ namespace ws {
     }
 
     template<class config>
-    void websocket_connection<config>::onReady() {
+    void websocket_connection<config>::on_data() {
         try {
-            std::string data = m_conn->recv();
-            m_wsConnection->read_all(data.c_str(), data.length());
-        } catch(hc::exception& e) {
+            std::string data = get_connection()->recv();
+            m_ws_conn_ptr->read_all(data.c_str(), data.length());
+        } catch(exception& e) {
             if (!m_finished) {
                 m_logger.err("recv error: " + std::string(e.what()) + " (" + std::string(e.func()) + ")");
                 m_finished = false;
@@ -44,9 +44,9 @@ namespace ws {
     }
 
     template<class config>
-    void websocket_connection<config>::send(const std::vector<uint8_t>& msg) {
+    void websocket_connection<config>::send(const std::string& msg) {
         try {
-            m_wsConnection->send(&msg[0], msg.size(), websocketpp::frame::opcode::binary);
+            m_ws_conn_ptr->send(msg, websocketpp::frame::opcode::BINARY);
         } catch(std::exception& e) {
             m_logger.err("failed to send message: " + std::string(e.what()));
         }
@@ -55,14 +55,14 @@ namespace ws {
     template<class config>
     void websocket_connection<config>::close(const std::string& reason) {
         try {
-            m_wsConnection->close(websocketpp::close::status::going_away, reason);
+            m_ws_conn_ptr->close(websocketpp::close::status::going_away, reason);
         } catch(std::exception& e) {
             m_logger.err("failed to close client: " + std::string(e.what()));
         }
     }
 
     template<class config>
-    std::error_code websocket_connection<config>::onVectorWrite(websocketpp::connection_hdl hdl, std::vector<websocketpp::transport::buffer> const& bufs) {
+    std::error_code websocket_connection<config>::on_vector_write(websocketpp::connection_hdl hdl, std::vector<websocketpp::transport::buffer> const& bufs) {
         if (m_finished) {
             return std::make_error_code(std::errc::connection_aborted);
         }
@@ -74,8 +74,8 @@ namespace ws {
         }
 
         try {
-            m_conn->send(data);
-        } catch(hc::exception& e) {
+            get_connection()->send(data);
+        } catch(exception& e) {
             m_logger.err("send error: " + std::string(e.what()) + " (" + std::string(e.func()) + ")");
             m_finished = true;
 
@@ -86,14 +86,14 @@ namespace ws {
     }
 
     template<class config>
-    std::error_code websocket_connection<config>::onWrite(websocketpp::connection_hdl hdl, const char* data, std::size_t len) {
+    std::error_code websocket_connection<config>::on_write(websocketpp::connection_hdl hdl, const char* data, std::size_t len) {
         if (m_finished) {
             return std::make_error_code(std::errc::connection_aborted);
         }
 
         try {
-            m_conn->send(std::string(data, len));
-        } catch(hc::exception& e) {
+            get_connection()->send(std::string(data, len));
+        } catch(exception& e) {
             m_logger.err("send error: " + std::string(e.what()) + " (" + std::string(e.func()) + ")");
 
             m_finished = true;
@@ -104,33 +104,45 @@ namespace ws {
     }
 
     template<class config>
-    void websocket_connection<config>::onOpen(websocketpp::connection_hdl hdl) {
+    void websocket_connection<config>::on_open(websocketpp::connection_hdl hdl) {
         m_logger.dbg("client session started");
     }
 
     template<class config>
-    void websocket_connection<config>::onFail(websocketpp::connection_hdl hdl) {
+    void websocket_connection<config>::on_fail(websocketpp::connection_hdl hdl) {
         m_logger.err("failed to start client session");
         m_finished = true;
     }
 
     template<class config>
-    void websocket_connection<config>::onClose(websocketpp::connection_hdl hdl) {
+    void websocket_connection<config>::on_close(websocketpp::connection_hdl hdl) {
         m_logger.dbg("client session finished");
         m_finished = true;
     }
 
     template<class config>
-    void websocket_connection<config>::onMessage(websocketpp::connection_hdl hdl, hc::ws::server::message_ptr msg) {
+    void websocket_connection<config>::_on_message(websocketpp::connection_hdl hdl, server::message_ptr msg) {
         if (msg->get_opcode() != websocketpp::frame::opcode::binary) return;
 
-        std::string messageStr = msg->get_payload();
-
-        m_messageCallback(std::vector<uint8_t>(messageStr.cbegin(), messageStr.cend()));
+        on_message(msg->get_payload());
     }
 
-    template class websocket_connection<hc::ws::client_config>;
-    template class websocket_connection<hc::ws::server_config>;
+    template<class config>
+    void websocket_connection<config>::on_message(const std::string& msg) {
+
+    }
+
+    template<class config>
+    net::ssl::connection_ptr websocket_connection<config>::get_connection() {
+        if (m_tls_conn_hdl.expired()) {
+            throw exception("bad connection", "hc::ws::websocket_connection::get_connection");
+        }
+
+        return m_tls_conn_hdl.lock();
+    }
+
+    template class websocket_connection<client_config>;
+    template class websocket_connection<server_config>;
 
 }
 }

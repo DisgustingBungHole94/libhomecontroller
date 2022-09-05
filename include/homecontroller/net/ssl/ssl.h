@@ -26,17 +26,17 @@ namespace ssl {
 
             explicit string_bio();
 
-            BIO* getBIO() { return m_bio.get(); }
-            const std::string& getStr() { return m_str; }
+            BIO* bio() { return m_bio.get(); }
+            const std::string& str() { return m_str; }
 
         private:
             std::string m_str;
 
-            hc::net::ssl::unique_ptr<BIO_METHOD> m_methods;
-            hc::net::ssl::unique_ptr<BIO> m_bio;
+            unique_ptr<BIO_METHOD> m_methods;
+            unique_ptr<BIO> m_bio;
     };
 
-    extern std::string errorStr();
+    extern std::string error_str();
 
 }
 }

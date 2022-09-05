@@ -9,7 +9,7 @@
 namespace hc {
 namespace util {
 
-    const std::string logger::_MASTER_PREFIX = "[HomeController]";
+    const std::string logger::_MASTER_PREFIX = "[hc]";
 
     const std::string logger::_LOG_PREFIX = "[LOG]";
     const std::string logger::_ERR_PREFIX = "[ERROR]";
@@ -22,11 +22,11 @@ namespace util {
         : m_name(name)
     {
         if (m_name.length() + 2 >= 16) {
-            m_tabStr = "\t";
+            m_tab_str = "\t";
         } else if (m_name.length() + 2 >= 8) {
-            m_tabStr = "\t\t";
+            m_tab_str = "\t\t";
         } else {
-            m_tabStr = "\t\t\t";
+            m_tab_str = "\t\t\t";
         }
     }
 
@@ -53,15 +53,15 @@ namespace util {
     std::string logger::timestamp() {
         auto t = std::time(nullptr);
 
-        std::ostringstream oss;
-        oss << std::put_time(std::localtime(&t), "%m-%d-%y %H:%M:%S");
+        std::ostringstream ss;
+        ss << std::put_time(std::localtime(&t), "%m-%d-%y %H:%M:%S");
 
-        return oss.str();
+        return ss.str();
     }
 
     void logger::print(const std::string prefix, const std::string msg, bool nl, std::string color) {
         std::ostringstream ss;
-        ss << _MASTER_PREFIX << " " << timestamp() << "\t[" << m_name << "]" << m_tabStr << prefix << "\t\t" << msg;
+        ss << _MASTER_PREFIX << " " << timestamp() << "\t[" << m_name << "]" << m_tab_str << prefix << "\t\t" << msg;
         if (nl) ss << "\n";
 
         std::cout << color + ss.str() + "\033[0m";

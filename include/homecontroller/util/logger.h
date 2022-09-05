@@ -14,8 +14,8 @@ namespace util {
             void csh(const std::string msg, bool nl = true);
             void dbg(const std::string msg, bool nl = true);
 
-            static void enableDebug() { _DEBUG_ENABLED = true; }
-            static void disableDebug() { _DEBUG_ENABLED = false;}
+            static void enable_debug() { _DEBUG_ENABLED = true; }
+            static void disable_debug() { _DEBUG_ENABLED = false;}
 
         private:
             static const std::string _MASTER_PREFIX;
@@ -28,7 +28,7 @@ namespace util {
             static bool _DEBUG_ENABLED;
 
             std::string m_name;
-            std::string m_tabStr;
+            std::string m_tab_str;
 
             std::string timestamp();
 

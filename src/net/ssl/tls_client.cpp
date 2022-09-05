@@ -16,16 +16,16 @@ namespace ssl {
 
         m_sslCtx.reset(SSL_CTX_new(method));
         if (m_sslCtx == nullptr) {
-            throw hc::exception("failed to init SSL context", "hc::net::ssl::tls_context::init");
+            throw exception("failed to init SSL context", "hc::net::ssl::tls_context::init");
         }
     }
 
-    std::unique_ptr<hc::net::ssl::tls_connection> tls_client::connect(const std::string& host, const std::string& port) {
-        hc::net::ssl::unique_ptr<SSL> ssl;
+    void tls_client::connect(const std::string& host, const std::string& port) {
+        unique_ptr<SSL> ssl;
 
         ssl.reset(SSL_new(m_sslCtx.get()));
         if (ssl == nullptr) {
-            throw hc::exception("failed to create ssl", "hc::net::ssl::tls_context::connect");
+            throw exception("failed to create ssl", "hc::net::ssl::tls_context::connect");
         }
         
         struct addrinfo hints = {}, *addrs;
@@ -36,7 +36,7 @@ namespace ssl {
 
         int err = getaddrinfo(host.c_str(), port.c_str(), &hints, &addrs);
         if (err != 0) {
-            throw hc::exception("failed to resolve host", "hc::net::ssl::tls_context::connect");
+            throw exception("failed to resolve host", "hc::net::ssl::tls_context::connect");
         }
 
         int sd;
@@ -60,7 +60,7 @@ namespace ssl {
         freeaddrinfo(addrs);
 
         if (sd == -1) {
-            throw hc::exception("failed to connect to server", "hc::net::ssl::tls_context::connect");
+            throw exception("failed to connect to server", "hc::net::ssl::tls_context::connect");
         }
 
         SSL_set_fd(ssl.get(), sd);
@@ -71,12 +71,10 @@ namespace ssl {
                 close(sd);
             }
 
-            throw hc::exception("tls handshake failed", "hc::net::ssl::tls_context::connect");
+            throw exception("tls handshake failed", "hc::net::ssl::tls_context::connect");
         }
 
-        std::unique_ptr<hc::net::ssl::tls_connection> conn = std::make_unique<hc::net::ssl::tls_connection>(std::move(ssl), hc::net::ssl::tls_connection_mode::CLIENT);
-
-        return std::move(conn);
+        m_conn = std::make_shared<tls_connection>(std::move(ssl), tls_connection_mode::CLIENT);
     }
 
 }

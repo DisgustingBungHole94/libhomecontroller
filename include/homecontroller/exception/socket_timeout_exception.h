@@ -3,7 +3,7 @@
 #include "homecontroller/exception/exception.h"
 
 namespace hc {
-    class socket_timeout_exception : public hc::exception {
+    class socket_timeout_exception : public exception {
         public:
             socket_timeout_exception(const std::string& func)
                 : exception("socket timed out", func)

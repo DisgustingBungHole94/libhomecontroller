@@ -50,7 +50,7 @@ namespace http {
             parser_data* dataPtr = (parser_data*)parser->data;
             
             std::string field = std::string(at, len);
-            dataPtr->m_lastHeaderField = hc::util::str::toLowerCase(field);
+            dataPtr->m_last_header_field = util::str::to_lower_case(field);
 
             return 0;
         };
@@ -58,9 +58,9 @@ namespace http {
         m_settings.on_header_value = [](llhttp_t* parser, const char* at, std::size_t len) -> int {
             parser_data* dataPtr = (parser_data*)parser->data;
             
-            if (dataPtr->m_lastHeaderField != "") {
-                dataPtr->m_headers.insert(std::make_pair(dataPtr->m_lastHeaderField, std::string(at, len)));
-                dataPtr->m_lastHeaderField = "";
+            if (dataPtr->m_last_header_field != "") {
+                dataPtr->m_headers.insert(std::make_pair(dataPtr->m_last_header_field, std::string(at, len)));
+                dataPtr->m_last_header_field = "";
             }
 
             return 0;
@@ -79,7 +79,7 @@ namespace http {
         if (err == HPE_PAUSED_UPGRADE) {
             m_data.m_upgrade = true;
         } else if (err != HPE_OK) {
-            throw hc::exception("failed to parse HTTP: " + std::string(llhttp_errno_name(err)) + " " + std::string(m_parser.reason), "hc::http::http_parser::parse");
+            throw exception("failed to parse HTTP: " + std::string(llhttp_errno_name(err)) + " " + std::string(m_parser.reason), "hc::http::http_parser::parse");
         }
 
         if (m_data.m_finished) {
@@ -92,26 +92,26 @@ namespace http {
         return false;
     }
 
-    hc::http::http_request http_parser::getRequest() {
+  http_request http_parser::get_request() {
         if (m_type != parser_type::REQUEST) {
-            throw hc::exception("parser type is not request", "hc::http::http_parser::getRequest");
+            throw exception("parser type is not request", "hc::http::http_parser::getRequest");
         }
 
-        hc::http::http_request request(m_data.m_method, m_data.m_url, m_data.m_body);
-        request.setShouldUpgrade(m_data.m_upgrade);
+        http_request request(m_data.m_method, m_data.m_url, m_data.m_body);
+        request.set_should_upgrade(m_data.m_upgrade);
 
         m_data = parser_data();
 
         return request;
     }
 
-    hc::http::http_response http_parser::getResponse() {
+    http_response http_parser::get_response() {
         if (m_type != parser_type::RESPONSE) {
-            throw hc::exception("parser type is not response", "hc::http::http_parser::getResponse");
+            throw exception("parser type is not response", "hc::http::http_parser::getResponse");
         }
 
-        hc::http::http_response response(m_data.m_status, m_data.m_body, m_data.m_headers);
-        response.setShouldUpgrade(m_data.m_upgrade);
+        http_response response(m_data.m_status, m_data.m_body, m_data.m_headers);
+        response.set_should_upgrade(m_data.m_upgrade);
 
         m_data = parser_data();
 

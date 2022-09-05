@@ -12,14 +12,14 @@ namespace util {
 
     template<typename duration_type>
     void timer<duration_type>::reset() {
-        m_startTime = std::chrono::high_resolution_clock::now();
+        m_start_time = std::chrono::high_resolution_clock::now();
     }
 
     template<typename duration_type>
     bool timer<duration_type>::finished() {
         std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
 
-        if (std::chrono::duration_cast<duration_type>(now - m_startTime) > m_duration) {
+        if (std::chrono::duration_cast<duration_type>(now - m_start_time) > m_duration) {
             return true;
         }
 

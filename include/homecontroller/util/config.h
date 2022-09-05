@@ -11,19 +11,19 @@ namespace util {
     class config_value {
         public:
             config_value(const std::string& name) 
-                : m_name(name), m_str(""), m_int(0), m_isString(false), m_isInt(false)
+                : m_name(name), m_str(""), m_int(0), m_is_string(false), m_is_int(false)
             {}
 
             ~config_value() {}
 
-            void setString(const std::string& val);
-            const std::string& getString();
+            void set_string(const std::string& val);
+            const std::string& get_string();
 
-            void setInt(int val);
-            const int getInt();
+            void set_int(int val);
+            const int get_int();
 
-            bool isString() { return m_isString; }
-            bool isInt() { return m_isInt; }
+            bool is_string() { return m_is_string; }
+            bool is_int() { return m_is_int; }
 
         private:
             std::string m_name;
@@ -31,8 +31,8 @@ namespace util {
             std::string m_str;
             int m_int;
 
-            bool m_isString;
-            bool m_isInt;
+            bool m_is_string;
+            bool m_is_int;
     };
 
     class config {

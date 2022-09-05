@@ -8,13 +8,18 @@ namespace hc {
 namespace net {
 namespace ssl {
 
+    class tls_connection;
+
+    typedef std::shared_ptr<tls_connection> connection_ptr;
+    typedef std::weak_ptr<tls_connection> connection_hdl;
+
     enum class tls_connection_mode {
         SERVER, CLIENT
     };
 
     class tls_connection {
         public:
-            tls_connection(hc::net::ssl::unique_ptr<SSL> ssl, tls_connection_mode mode)
+            tls_connection(unique_ptr<SSL> ssl, tls_connection_mode mode)
                 : m_ssl(std::move(ssl)), m_closed(false), m_ready(false), m_mode(mode)
             {
                 m_create_time = std::chrono::high_resolution_clock::now();
@@ -42,10 +47,12 @@ namespace ssl {
 
             int time_since_create();
 
+            static connection_ptr conn_from_hdl(connection_hdl hdl);
+
         private:
             void _close();
 
-            hc::net::ssl::unique_ptr<SSL> m_ssl;
+            unique_ptr<SSL> m_ssl;
 
             std::string m_ip;
             std::string m_uri;
@@ -66,7 +73,7 @@ namespace ssl {
             int m_close_event_fd;
             int m_associated_timer_fd;
     };
-    
+
 }
 }
 }

@@ -5,21 +5,21 @@
 namespace hc {
 namespace http {
 
-    void http_response::addHeader(const std::string& name, const std::string& value) {
+    void http_response::add_header(const std::string& name, const std::string& value) {
         m_headers.insert(std::make_pair(name, value));
     }
 
-    bool http_response::getHeader(const std::string& name, std::string& valueRef) {
+    bool http_response::get_header(const std::string& name, std::string& value_ref) {
         auto mit = m_headers.find(name);
         if (mit == m_headers.end()) {
             return false;
         }
 
-        valueRef = mit->second;
+        value_ref = mit->second;
         return true;
     }
 
-    std::string http_response::toString() {
+    std::string http_response::str() {
         std::string response = "HTTP/1.1 " + m_status + "\r\n";
 
         for (auto& x : m_headers) {

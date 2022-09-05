@@ -23,18 +23,18 @@ namespace ssl {
         SSL_CTX_set_min_proto_version(m_ssl_ctx.get(), TLS1_2_VERSION);
 
         if (SSL_CTX_use_certificate_file(m_ssl_ctx.get(), cert_file.c_str(), SSL_FILETYPE_PEM) <= 0) {
-            m_logger.err("openssl error: " + hc::net::ssl::errorStr());
-            throw hc::exception("failed to load server certificate file", "hc::net::ssl::tls_server::init");
+            m_logger.err("openssl error: " + error_str());
+            throw exception("failed to load server certificate file", "hc::net::ssl::tls_server::init");
         }
 
         if (SSL_CTX_use_PrivateKey_file(m_ssl_ctx.get(), priv_key_file.c_str(), SSL_FILETYPE_PEM) <= 0) {
-            m_logger.err("openssl error: " + hc::net::ssl::errorStr());
-            throw hc::exception("failed to load server private key file", "hc::net::ssl::tls_server::init");
+            m_logger.err("openssl error: " + error_str());
+            throw exception("failed to load server private key file", "hc::net::ssl::tls_server::init");
         }
 
         m_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (m_socket < 0) {
-            throw hc::exception("failed to create socket", "hc::net::ssl::tls_server::init");
+            throw exception("failed to create socket", "hc::net::ssl::tls_server::init");
         }
 
         const int reuse_addr = 1;
@@ -48,17 +48,17 @@ namespace ssl {
         server_addr.sin_addr.s_addr = INADDR_ANY;
 
         if (bind(m_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-            throw hc::exception("failed to bind socket, is the port in use?", "hc::net::ssl::tls_server::init");
+            throw exception("failed to bind socket, is the port in use?", "hc::net::ssl::tls_server::init");
         }
 
         m_epfd = epoll_create(1);
         if (m_epfd == -1) {
-            throw hc::exception("failed to create epoll descriptor", "hc::net::ssl::tls_server::init");
+            throw exception("failed to create epoll descriptor", "hc::net::ssl::tls_server::init");
         }
 
         m_close_event_fd = eventfd(0, 0);
         if (m_close_event_fd == -1) {
-            throw hc::exception("failed to create exit event descriptor", "hc::net::ssl::tls_server::init");
+            throw exception("failed to create exit event descriptor", "hc::net::ssl::tls_server::init");
         }
 
         set_nonblocking(m_socket);
@@ -112,8 +112,8 @@ namespace ssl {
                 else if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
                     // close socket
                     try {
-                        conn_from_hdl(data_ptr->m_conn_hdl)->close();
-                    } catch(hc::exception& e) {
+                        tls_connection::conn_from_hdl(data_ptr->m_conn_hdl)->close();
+                    } catch(exception& e) {
                         m_logger.err("failed to close socket, bad handle");
 
                         epoll_ctl_del(data_ptr->m_fd);
@@ -173,13 +173,13 @@ namespace ssl {
 
         int numBytes = write(m_close_event_fd, &d, sizeof(uint64_t));
         if (numBytes != sizeof(uint64_t)) {
-            throw hc::exception("failed to write to close event fd", "hc::net::ssl::tls_server::stop");
+            throw exception("failed to write to close event fd", "hc::net::ssl::tls_server::stop");
         }
     }
-    
-    tls_server::connection_ptr tls_server::conn_from_hdl(connection_hdl hdl) {
-        return hdl.lock();
-    }
+
+    void tls_server::on_connect(connection_hdl conn) {}
+    void tls_server::on_data(connection_hdl conn) {}
+    void tls_server::on_disconnect(connection_hdl conn) {}
 
     void tls_server::accept() {
         struct sockaddr_in client_addr;
@@ -191,51 +191,44 @@ namespace ssl {
             return;
         }
 
-        hc::net::ssl::unique_ptr<SSL> client_ssl(SSL_new(m_ssl_ctx.get()));
+        unique_ptr<SSL> client_ssl(SSL_new(m_ssl_ctx.get()));
         SSL_set_fd(client_ssl.get(), client_socket);
 
-        std::shared_ptr<hc::net::ssl::tls_connection> conn = std::make_shared<hc::net::ssl::tls_connection>(std::move(client_ssl), hc::net::ssl::tls_connection_mode::SERVER);
+        std::shared_ptr<tls_connection> conn = std::make_shared<tls_connection>(std::move(client_ssl), tls_connection_mode::SERVER);
         conn->set_ip(get_socket_ip(&client_addr));
 
-        int timer_fd = -1;
+        int timer_fd = create_timer_fd();
 
-        try {
-            timer_fd = create_timer_fd();
-
-            set_nonblocking(timer_fd);
-            set_nonblocking(client_socket);
-        } catch(hc::exception& e) {
-            if (timer_fd != -1) {
-                ::close(timer_fd);
-            }
-
-            ::close(client_socket);
-
-            m_logger.err(e.what());
+        if (timer_fd == -1) {
+            m_logger.err("failed to create timer fd");
             return;
         }
 
-        try {
-            int events = EPOLLIN;
-            epoll_ctl_add(timer_fd, events, epoll_fd_data::type::TIMER, conn);
-        } catch(hc::exception& e) {
+        if (!set_nonblocking(timer_fd) || !set_nonblocking(client_socket)) {
             ::close(timer_fd);
             ::close(client_socket);
 
-            m_logger.err(e.what());
+            m_logger.err("failed to set fds to nonblocking");
             return;
         }
 
-        try {
-            int events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP;
-            epoll_ctl_add(client_socket, events,epoll_fd_data::type::SOCKET, conn);
-        } catch(hc::exception& e) {
+        int events = EPOLLIN;
+        if (!epoll_ctl_add(timer_fd, EPOLLIN, epoll_fd_data::type::TIMER, conn)) {
+            ::close(timer_fd);
+            ::close(client_socket);
+
+            m_logger.err("failed to add timer fd to epoll list");
+            return;
+        }
+
+        events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP;
+        if (!epoll_ctl_add(client_socket, events,epoll_fd_data::type::SOCKET, conn)) {
             ::close(timer_fd);
             ::close(client_socket);
 
             epoll_ctl_del(timer_fd);
 
-            m_logger.err(e.what());
+            m_logger.err("failed to add client socket to epoll list");
             return;
         }
 
@@ -246,17 +239,18 @@ namespace ssl {
     }
 
     void tls_server::handle_data(epoll_fd_data* data_ptr) {
-        connection_ptr conn = conn_from_hdl(data_ptr->m_conn_hdl);
-        if (!conn) {
-            m_logger.err("failed to handle data, bad connection");
+        connection_ptr conn;
+        try {
+            conn = tls_connection::conn_from_hdl(data_ptr->m_conn_hdl);
+        } catch(exception& e) {
+            m_logger.err("failed to handle data, bad handle");
 
             epoll_ctl_del(data_ptr->m_fd);
             return;
         }
 
-        try {
-            update_timer_fd(conn->m_associated_timer_fd);
-        } catch(hc::exception& e) {
+
+        if (!update_timer_fd(conn->m_associated_timer_fd)) {
             m_logger.err("failed to update timer associated with connection");
         }
 
@@ -267,7 +261,7 @@ namespace ssl {
 
             // check if handshake failed
             if (conn->closed()) {
-                m_logger.err("openssl error: " + hc::net::ssl::errorStr());
+                m_logger.err("openssl error: " + error_str());
             }
             
             // if handshake is complete, call connect callback
@@ -283,14 +277,22 @@ namespace ssl {
     }
     
     void tls_server::handle_timeout(epoll_fd_data* data_ptr) {
-        connection_ptr conn = conn_from_hdl(data_ptr->m_conn_hdl);
-        if (conn) {
+        connection_ptr conn;
+        
+        bool conn_closed = false;
+
+        try {
+            conn = tls_connection::conn_from_hdl(data_ptr->m_conn_hdl);
+        } catch(exception& e) {
+            conn_closed = true;
+        }
+
+        if (!conn_closed) {
             m_logger.dbg("client [" + conn->get_ip() + "] timed out");
             conn->close();
         }
 
         epoll_ctl_del(data_ptr->m_fd);
-
         ::close(data_ptr->m_fd);
     }
 
@@ -340,7 +342,8 @@ namespace ssl {
     int tls_server::create_timer_fd() {
         int tfd = timerfd_create(CLOCK_MONOTONIC, 0);
         if (tfd == -1) {
-            throw hc::exception("failed to create timer fd", "hc::net::ssl::tls_server::create_timer_fd");
+            return -1;
+            //throw exception("failed to create timer fd", "hc::net::ssl::tls_server::create_timer_fd");
         }
 
         update_timer_fd(tfd);
@@ -348,13 +351,16 @@ namespace ssl {
         return tfd;
     }
 
-    void tls_server::update_timer_fd(int fd) {
+    bool tls_server::update_timer_fd(int fd) {
         if (timerfd_settime(fd, 0, &m_timeout, nullptr) == -1) {
-            throw hc::exception("failed to set timeout", "hc::net::ssl::tls_server::create_timer_fd");
+            return false;
+            //throw exception("failed to set timeout", "hc::net::ssl::tls_server::create_timer_fd");
         }
+
+        return true;
     }
 
-    void tls_server::epoll_ctl_add(int fd, uint32_t events, epoll_fd_data::type type, connection_ptr conn_ptr) {
+    bool tls_server::epoll_ctl_add(int fd, uint32_t events, epoll_fd_data::type type, connection_ptr conn_ptr) {
         epoll_fd_data* data = new epoll_fd_data();
         data->m_fd = fd;
         data->m_type = type;
@@ -366,17 +372,20 @@ namespace ssl {
 
         if (epoll_ctl(m_epfd, EPOLL_CTL_ADD, data->m_fd, &ev) == -1) {
             delete data;
-            throw hc::exception("failed to add fd to epoll list", "hc::net::ssl::tls_server::epollCtlAdd");
+            return false;
+            //throw exception("failed to add fd to epoll list", "hc::net::ssl::tls_server::epollCtlAdd");
         }
 
         m_epoll_fds.insert(std::make_pair(fd, data));
+
+        return true;
     }
 
-    void tls_server::epoll_ctl_add(int fd, uint32_t events) {
-        epoll_ctl_add(fd, events, epoll_fd_data::type::OTHER, nullptr);
+    bool tls_server::epoll_ctl_add(int fd, uint32_t events) {
+        return epoll_ctl_add(fd, events, epoll_fd_data::type::OTHER, nullptr);
     }
 
-    void tls_server::epoll_ctl_del(int fd) {
+    bool tls_server::epoll_ctl_del(int fd) {
         auto mit = m_epoll_fds.find(fd);
         if (mit != m_epoll_fds.end()) {
             delete mit->second;
@@ -384,15 +393,20 @@ namespace ssl {
         }
 
         if (epoll_ctl(m_epfd, EPOLL_CTL_DEL, fd, nullptr) == -1) {
-            //throw hc::exception("failed to remove fd from epoll list", "hc::net::ssl::tls_server::epollCtlDel");
-            m_logger.err("failed to remove fd from epoll list");
+            return false;
+            //throw exception("failed to remove fd from epoll list", "hc::net::ssl::tls_server::epoll_ctl_del");
         }
+
+        return true;
     }
 
-    void tls_server::set_nonblocking(int fd) {
+    bool tls_server::set_nonblocking(int fd) {
         if (fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK) < 0) {
-            throw hc::exception("failed to set socket to nonblocking", "hc::net::ssl::tls_server::init");
+            return false;
+            //throw exception("failed to set socket to nonblocking", "hc::net::ssl::tls_server::set_nonblocking");
         }
+
+        return true;
     }
 
 }

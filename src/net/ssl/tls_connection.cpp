@@ -22,14 +22,14 @@ namespace ssl {
         int res;
 
         switch(m_mode) {
-            case hc::net::ssl::tls_connection_mode::SERVER:
+            case tls_connection_mode::SERVER:
                 res = SSL_accept(m_ssl.get());
                 break;
-            case hc::net::ssl::tls_connection_mode::CLIENT:
+            case tls_connection_mode::CLIENT:
                 res = SSL_connect(m_ssl.get());
                 break;
             default:
-                throw hc::exception("unknown connection type", "hc::net::ssl::tls_connection_handshake");
+                throw exception("unknown connection type", "hc::net::ssl::tls_connection_handshake");
         }
 
         if (res != 1) {
@@ -50,7 +50,7 @@ namespace ssl {
 
     std::string tls_connection::recv() {
         if (m_closed) {
-            throw hc::exception("socket is closed", "hc::net::ssl::tls_connection::recv");
+            throw exception("socket is closed", "hc::net::ssl::tls_connection::recv");
         }
 
         static const unsigned int MAX_BUF_LEN = 4096;
@@ -64,7 +64,7 @@ namespace ssl {
 
             if (numBytes < 0) {
                 m_closed = true;
-                throw hc::exception("failed to receive bytes", "hc::net::ssl::tls_client::recv");
+                throw exception("failed to receive bytes", "hc::net::ssl::tls_client::recv");
             } else if (numBytes == 0) {
                 m_closed = true;
             }
@@ -78,21 +78,21 @@ namespace ssl {
 
     void tls_connection::send(const std::string& data) {
         if (m_closed) {
-            throw hc::exception("socket is closed", "hc::net::ssl::tls_connection::send");
+            throw exception("socket is closed", "hc::net::ssl::tls_connection::send");
         }
 
         if (SSL_write(m_ssl.get(), data.c_str(), data.length()) < 0) {
-            throw hc::exception("failed to send bytes", "hc::net::ssl::tls_client::send");
+            throw exception("failed to send bytes", "hc::net::ssl::tls_client::send");
         }
     }
 
     void tls_connection::close() {
-        if (m_mode == hc::net::ssl::tls_connection_mode::SERVER) {
+        if (m_mode == tls_connection_mode::SERVER) {
             uint64_t d = 1;
             
             int numBytes = write(m_close_event_fd, &d, sizeof(uint64_t));
             if (numBytes != sizeof(uint64_t)) {
-                throw hc::exception("failed to write to close event fd", "hc::net::ssl::tls_connection::close");
+                throw exception("failed to write to close event fd", "hc::net::ssl::tls_connection::close");
             }
 
             m_needs_close = true;
@@ -116,6 +116,14 @@ namespace ssl {
         auto now = std::chrono::high_resolution_clock::now();
 
         return std::chrono::duration_cast<std::chrono::microseconds>(now - m_create_time).count();
+    }
+
+    connection_ptr tls_connection::conn_from_hdl(connection_hdl hdl) {
+        if (hdl.expired()) {
+            throw exception("bad connection", "hc::net::ssl::tls_server::conn_from_hdl");
+        }
+        
+        return hdl.lock();
     }
 
 }

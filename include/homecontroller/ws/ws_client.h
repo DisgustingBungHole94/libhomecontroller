@@ -15,10 +15,10 @@ namespace ws {
             ~websocket_client() {}
 
             void init();
-            std::unique_ptr<hc::ws::client_connection> connect(std::unique_ptr<hc::net::ssl::tls_connection> conn);
+            std::unique_ptr<client_connection> connect(net::ssl::connection_hdl tls_conn_hdl);
 
         private:
-            hc::ws::client m_client;
+            client m_client;
     };
 
 }

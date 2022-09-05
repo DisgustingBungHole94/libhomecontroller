@@ -11,32 +11,32 @@ namespace hc {
                 : session("", "", nullptr)
             {}
 
-            session(const std::string& id, const std::string& ip, std::shared_ptr<hc::user> user)
+            session(const std::string& id, const std::string& ip, std::shared_ptr<user> user)
                 : m_id(id), m_ip(ip), m_user(user)
             {
-                updateLastUse();
+                update_last_use();
             }
 
             ~session() {}
 
-            void setId(const std::string& id) { m_id = id; }
-            const std::string& getId() { return m_id; }
+            void set_id(const std::string& id) { m_id = id; }
+            const std::string& get_id() { return m_id; }
 
-            void setIp(const std::string& ip) { m_ip = ip; }
-            const std::string& getIp() { return m_ip; }
+            void set_ip(const std::string& ip) { m_ip = ip; }
+            const std::string& get_ip() { return m_ip; }
 
-            void setUser(std::weak_ptr<hc::user>& user) { m_user = user; }
-            std::shared_ptr<hc::user> getUser();
+            void set_user(std::weak_ptr<user>& user) { m_user = user; }
+            std::shared_ptr<user> get_user();
 
-            void updateLastUse();
-            std::chrono::time_point<std::chrono::high_resolution_clock> getLastUse() { return m_lastUse; }
+            void update_last_use();
+            std::chrono::time_point<std::chrono::high_resolution_clock> get_last_use() { return m_last_use; }
 
         private:
             std::string m_id;
             
             std::string m_ip;
-            std::chrono::time_point<std::chrono::high_resolution_clock> m_lastUse;
+            std::chrono::time_point<std::chrono::high_resolution_clock> m_last_use;
 
-            std::weak_ptr<hc::user> m_user;
+            std::weak_ptr<user> m_user;
     };
 }

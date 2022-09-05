@@ -16,14 +16,14 @@ namespace hc {
 
             ~device() {}
 
-            void setId(const std::string& id) { m_id = id; }
-            const std::string& getId() { return m_id; }
+            void set_id(const std::string& id) { m_id = id; }
+            const std::string& get_id() { return m_id; }
 
-            void setName(const std::string& name) { m_name = name; }
-            const std::string& getName() { return m_name; }
+            void set_name(const std::string& name) { m_name = name; }
+            const std::string& get_name() { return m_name; }
 
-            void setType(const std::string& type) { m_type = type; }
-            const std::string& getType() { return m_type; } 
+            void set_type(const std::string& type) { m_type = type; }
+            const std::string& get_type() { return m_type; } 
 
         private:
             std::string m_id;

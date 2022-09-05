@@ -4,8 +4,8 @@ STRUCTURE = $(shell cd $(SRCDIR) && find . -type d)
 INCDIR = include
 INCDIRNAME = homecontroller
 
-CXX ?= g++
-CXXFLAGS ?= -g -fPIC -I$(INCDIR)
+CXX = g++
+CXXFLAGS ?= -g -std=c++17 -fPIC -I$(INCDIR)
 
 BINARYDIR = bin
 OBJECTDIR = $(BINARYDIR)/obj
@@ -57,10 +57,6 @@ _HEADERS += net/ssl/tls_client.h
 _OBJECTS += net/ssl/tls_server.o
 _HEADERS += net/ssl/tls_server.h
 
-# net
-_OBJECTS += net/protocol_handler.o
-_HEADERS += net/protocol_handler.h
-
 # thread
 _OBJECTS += thread/thread_pool.o
 _HEADERS += thread/thread_pool.h
@@ -92,7 +88,7 @@ OBJECTS = $(patsubst %,$(OBJECTDIR)/%,$(_OBJECTS))
 HEADERS = $(patsubst %,$(INCDIR)/$(INCDIRNAME)/%,$(_HEADERS))
 
 $(OBJECTDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS) | $(OBJECTDIR)
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
+	$(CXX) $(CPPFLAGS) -c -o $@ $< $(CXXFLAGS)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) -shared -o $@ $^ $(CXXFLAGS) $(LIBS)
@@ -112,4 +108,4 @@ uninstall:
 clean:
 	rm -rf bin
 
-.PHONY: clean
+.PHONY: clean install uninstall
