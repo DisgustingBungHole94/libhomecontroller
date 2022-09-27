@@ -1,7 +1,0 @@
-.git
-.gitignore
-.vscode
-*.md
-bin
-docker_tools
-Dockerfile

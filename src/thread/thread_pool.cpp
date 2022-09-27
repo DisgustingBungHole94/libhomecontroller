@@ -57,7 +57,7 @@ namespace thread {
 
             std::thread::id id = std::this_thread::get_id();
 
-            m_logger.dbg("thread [" + thread_id_to_string(id) + "] started job");
+            //m_logger.dbg("thread [" + thread_id_to_string(id) + "] started job");
 
             job job = m_job_queue.front();
             m_job_queue.pop();
@@ -65,7 +65,7 @@ namespace thread {
             lock.unlock();
             job();
 
-            m_logger.dbg("thread [" + thread_id_to_string(id) + "] finished job");
+            //m_logger.dbg("thread [" + thread_id_to_string(id) + "] finished job");
         }
     }
 

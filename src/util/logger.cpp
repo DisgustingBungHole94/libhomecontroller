@@ -61,7 +61,7 @@ namespace util {
 
     void logger::print(const std::string prefix, const std::string msg, bool nl, std::string color) {
         std::ostringstream ss;
-        ss << _MASTER_PREFIX << " " << timestamp() << "\t[" << m_name << "]" << m_tab_str << prefix << "\t\t" << msg;
+        ss << _MASTER_PREFIX << "\t" << timestamp() << "\t[" << m_name << "]" << m_tab_str << prefix << "\t\t" << msg;
         if (nl) ss << "\n";
 
         std::cout << color + ss.str() + "\033[0m";

@@ -31,8 +31,6 @@ _HEADERS += app/user.h
 
 # exception
 _HEADERS += exception/exception.h
-_HEADERS += exception/socket_close_exception.h
-_HEADERS += exception/socket_timeout_exception.h
 
 # http
 _OBJECTS += http/http_request.o
@@ -44,12 +42,19 @@ _HEADERS += http/http_response.h
 _OBJECTS += http/http_parser.o
 _HEADERS += http/http_parser.h
 
+# net/ssl/connection
+_OBJECTS += net/ssl/connection/connection.o
+_HEADERS += net/ssl/connection/connection.h
+
+_OBJECTS += net/ssl/connection/server_connection.o
+_HEADERS += net/ssl/connection/server_connection.h
+
+_OBJECTS += net/ssl/connection/client_connection.o
+_HEADERS += net/ssl/connection/client_connection.h
+
 # net/ssl
 _OBJECTS += net/ssl/ssl.o
 _HEADERS += net/ssl/ssl.h
-
-_OBJECTS += net/ssl/tls_connection.o
-_HEADERS += net/ssl/tls_connection.h
 
 _OBJECTS += net/ssl/tls_client.o
 _HEADERS += net/ssl/tls_client.h
@@ -74,10 +79,17 @@ _HEADERS += util/config.h
 _OBJECTS += util/timer.o
 _HEADERS += util/timer.h
 
-# ws
-_OBJECTS += ws/ws_connection.o
-_HEADERS += ws/ws_connection.h
+# ws/connection
+_OBJECTS += ws/connection/connection.o
+_HEADERS += ws/connection/connection.h
 
+_OBJECTS += ws/connection/server_connection.o
+_HEADERS += ws/connection/server_connection.h
+
+_OBJECTS += ws/connection/client_connection.o
+_HEADERS += ws/connection/client_connection.h
+
+# ws
 _OBJECTS += ws/ws_client.o
 _HEADERS += ws/ws_client.h
 

@@ -14,16 +14,16 @@ namespace ssl {
     void tls_client::init() {
         const SSL_METHOD* method = TLS_client_method();
 
-        m_sslCtx.reset(SSL_CTX_new(method));
-        if (m_sslCtx == nullptr) {
+        m_ssl_ctx.reset(SSL_CTX_new(method));
+        if (m_ssl_ctx == nullptr) {
             throw exception("failed to init SSL context", "hc::net::ssl::tls_context::init");
         }
     }
 
-    void tls_client::connect(const std::string& host, const std::string& port) {
+    client_conn_ptr tls_client::connect(const std::string& host, const std::string& port) {
         unique_ptr<SSL> ssl;
 
-        ssl.reset(SSL_new(m_sslCtx.get()));
+        ssl.reset(SSL_new(m_ssl_ctx.get()));
         if (ssl == nullptr) {
             throw exception("failed to create ssl", "hc::net::ssl::tls_context::connect");
         }
@@ -74,7 +74,7 @@ namespace ssl {
             throw exception("tls handshake failed", "hc::net::ssl::tls_context::connect");
         }
 
-        m_conn = std::make_shared<tls_connection>(std::move(ssl), tls_connection_mode::CLIENT);
+        return std::make_shared<client_connection>(std::move(ssl));
     }
 
 }

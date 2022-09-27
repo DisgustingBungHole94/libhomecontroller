@@ -1,21 +1,19 @@
 #pragma once
 
 #include "homecontroller/ws/ws_config.h"
-#include "homecontroller/ws/ws_connection.h"
+#include "homecontroller/ws/connection/client_connection.h"
 
 #include "homecontroller/net/ssl/tls_client.h"
 
 namespace hc {
 namespace ws {
 
-    class websocket_client {
+    class ws_client {
         public:
-            websocket_client() {}
+            ws_client();
+            ~ws_client() {}
 
-            ~websocket_client() {}
-
-            void init();
-            std::unique_ptr<client_connection> connect(net::ssl::connection_hdl tls_conn_hdl);
+            client_conn_ptr connect(net::ssl::client_conn_hdl tls_conn_hdl);
 
         private:
             client m_client;

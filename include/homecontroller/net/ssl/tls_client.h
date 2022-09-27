@@ -1,6 +1,6 @@
 #pragma once
 
-#include "homecontroller/net/ssl/tls_connection.h"
+#include "homecontroller/net/ssl/connection/client_connection.h"
 
 namespace hc {
 namespace net {
@@ -12,14 +12,10 @@ namespace ssl {
             ~tls_client() {}
 
             void init();
-            void connect(const std::string& host, const std::string& port);
-
-            connection_ptr get_connection() { return m_conn; }
+            client_conn_ptr connect(const std::string& host, const std::string& port);
 
         private:
-            unique_ptr<SSL_CTX> m_sslCtx;
-
-            connection_ptr m_conn;       
+            unique_ptr<SSL_CTX> m_ssl_ctx;
     };
 
 }

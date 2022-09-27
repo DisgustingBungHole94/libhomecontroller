@@ -9,66 +9,66 @@ namespace http {
     void http_parser::init(parser_type type) {
         m_type = type;
         
-        llhttp_type llhttpType;
+        llhttp_type llhttp_type;
 
         switch(m_type) {
             case parser_type::REQUEST:
-                llhttpType = HTTP_REQUEST;
+                llhttp_type = HTTP_REQUEST;
                 break;
             case parser_type::RESPONSE:
-                llhttpType = HTTP_RESPONSE;
+                llhttp_type = HTTP_RESPONSE;
                 break;
         }
 
-        llhttp_init(&m_parser, llhttpType, &m_settings);
+        llhttp_init(&m_parser, llhttp_type, &m_settings);
         m_parser.data = &m_data;
 
         llhttp_settings_init(&m_settings);
 
         m_settings.on_url = [](llhttp_t* parser, const char* at, std::size_t len) -> int {
-            parser_data* dataPtr = (parser_data*)parser->data;
-            dataPtr->m_url = std::string(at, len);
+            parser_data* data_ptr = (parser_data*)parser->data;
+            data_ptr->m_url = std::string(at, len);
 
             return 0;
         };
 
         m_settings.on_status = [](llhttp_t* parser, const char* at, std::size_t len) -> int {
-            parser_data* dataPtr = (parser_data*)parser->data;
-            dataPtr->m_status = std::string(at, len);
+            parser_data* data_ptr = (parser_data*)parser->data;
+            data_ptr->m_status = std::string(at, len);
 
             return 0;
         };
 
         m_settings.on_body = [](llhttp_t* parser, const char* at, std::size_t len) -> int {
-            parser_data* dataPtr = (parser_data*)parser->data;
-            dataPtr->m_body = std::string(at, len);
+            parser_data* data_ptr = (parser_data*)parser->data;
+            data_ptr->m_body = std::string(at, len);
 
             return 0;
         };
 
         m_settings.on_header_field = [](llhttp_t* parser, const char* at, std::size_t len) -> int {
-            parser_data* dataPtr = (parser_data*)parser->data;
+            parser_data* data_ptr = (parser_data*)parser->data;
             
             std::string field = std::string(at, len);
-            dataPtr->m_last_header_field = util::str::to_lower_case(field);
+            data_ptr->m_last_header_field = util::str::to_lower_case(field);
 
             return 0;
         };
 
         m_settings.on_header_value = [](llhttp_t* parser, const char* at, std::size_t len) -> int {
-            parser_data* dataPtr = (parser_data*)parser->data;
+            parser_data* data_ptr = (parser_data*)parser->data;
             
-            if (dataPtr->m_last_header_field != "") {
-                dataPtr->m_headers.insert(std::make_pair(dataPtr->m_last_header_field, std::string(at, len)));
-                dataPtr->m_last_header_field = "";
+            if (data_ptr->m_last_header_field != "") {
+                data_ptr->m_headers.insert(std::make_pair(data_ptr->m_last_header_field, std::string(at, len)));
+                data_ptr->m_last_header_field = "";
             }
 
             return 0;
         };
 
         m_settings.on_message_complete = [](llhttp_t* parser) -> int {
-            parser_data* dataPtr = (parser_data*)parser->data;
-            dataPtr->m_finished = true;
+            parser_data* data_ptr = (parser_data*)parser->data;
+            data_ptr->m_finished = true;
 
             return 0;
         };
@@ -98,6 +98,7 @@ namespace http {
         }
 
         http_request request(m_data.m_method, m_data.m_url, m_data.m_body);
+        request.set_headers(m_data.m_headers);
         request.set_should_upgrade(m_data.m_upgrade);
 
         m_data = parser_data();
@@ -111,6 +112,7 @@ namespace http {
         }
 
         http_response response(m_data.m_status, m_data.m_body, m_data.m_headers);
+        response.set_headers(m_data.m_headers);
         response.set_should_upgrade(m_data.m_upgrade);
 
         m_data = parser_data();

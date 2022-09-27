@@ -1,5 +1,7 @@
 #pragma once
 
+#include "homecontroller/ws/connection/server_connection.h"
+
 #include <string>
 #include <memory>
 
@@ -8,6 +10,10 @@ namespace hc {
         public:
             device() 
                 : device("", "", "")
+            {}
+
+            device(const std::string& name, const std::string& type)
+                 : device("", name, type)
             {}
 
             device(const std::string& id, const std::string& name, const std::string& type)
@@ -25,10 +31,15 @@ namespace hc {
             void set_type(const std::string& type) { m_type = type; }
             const std::string& get_type() { return m_type; } 
 
+            void set_connection(std::weak_ptr<hc::ws::server_connection> connection);
+            std::shared_ptr<hc::ws::server_connection> get_connection();
+
         private:
             std::string m_id;
             
             std::string m_name;
             std::string m_type;
+
+            std::weak_ptr<hc::ws::server_connection> m_connection;
     };
 }
