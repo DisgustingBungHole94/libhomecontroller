@@ -23,19 +23,19 @@ namespace http {
             ~http_response() {}
 
             void set_status(const std::string& status) { m_status = status; }
-            const std::string& get_status() { return m_status; }
+            const std::string& get_status() const { return m_status; }
 
             void set_body(const std::string& body) { m_body = body; }
-            const std::string& get_body() { return m_body; }
+            const std::string& get_body() const { return m_body; }
 
             void set_should_upgrade(bool should_upgrade) { m_should_upgrade = should_upgrade; }
-            bool should_upgrade() { return m_should_upgrade; }
+            bool should_upgrade() const { return m_should_upgrade; }
 
             void set_headers(const std::map<std::string, std::string>& headers) { m_headers = headers; }
             void add_header(const std::string& name, const std::string& value);
-            bool get_header(const std::string& name, std::string& value_ref);
+            bool get_header(const std::string& name, std::string& value_ref) const;
 
-            std::string str();
+            std::string str() const;
 
         private:
             std::string m_status;

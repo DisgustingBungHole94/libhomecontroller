@@ -1,0 +1,138 @@
+HomeController 3.0.0 API Specifications
+---------------------------------------
+By Josh Dittmer
+
+EXAMPLE INTERACTION:
+
+1.  Device connects to server: 
+    device --> (handshake packet)           --> server
+    server --> (handshake response packet)  --> device
+
+2.  Client connects to server:
+    client --> (handshake packet)           --> server
+    server --> (handshake response packet)  --> client
+
+3.  Client issues command:
+    client --> (command packet)             --> server
+    server --> (command packet)             --> device
+    device --> (response packet)            --> server
+    server --> (response packet)            --> client
+
+All packets have the same header:
++======================+==================+
+| 4 byte packet length | 4 byte packet ID |
++======================+==================+
+
+Notes:
+1.  Packet IDs are as follows:
+    Handshake packet:           0x00
+    Handshake response packet:  0x01
+    Command packet:             0x02
+    Command response packet:    0x03
+
+
+HANDSHAKE PACKET (device/client -> server):
+
+    +=========================+=======================+===================+
+    | 2 byte protocol version | 32 byte session token | 32 byte device ID |
+    +=========================+=======================+===================+
+
+    Notes:
+    1. If sent by a device, this packet will set the device's connected state to true on the server.
+
+    2. If sent by a client, this packet will associate the client with the specified device.
+
+HANDSHAKE RESPONSE PACKET (server -> device/client):
+
+    +================================+
+    | 1 byte handshake response code |
+    +================================+
+
+    Notes:
+    1.  Handshake response codes are as follows:
+        0x00: Success
+        0x01: Bad session token
+        0x02: Bad device ID
+
+COMMAND PACKETS (client -> server -> device):
+
+    All command packet bodies start with:
+    +====================+===================+
+    | 4 byte device type | 2 byte command ID |
+    +====================+===================+
+
+    Notes:
+    1.  The 4 byte device ID specifies the type of device which is receiving the packet.
+
+    2. The 2 byte command ID specifies the command to be executed.
+
+    3. The packet header will be followed by followed by a packet body, the format of which is determined by the device and command IDs.
+
+    Command packet bodies for light strip (device id 0x01):
+
+    Get color (0x00):
+
+        EMPTY
+
+    Get program (0x01):
+
+        EMPTY
+
+    Get speed (0x02):
+
+        EMPTY
+
+    Set color (0x03):
+
+        +==========+==========+==========+
+        | 1 byte R | 1 byte G | 1 byte B |
+        +==========+==========+==========+
+
+    Start program (0x04):
+
+        +===================+
+        | 1 byte program ID |
+        +===================+
+
+    Stop program (0x05):
+
+        EMPTY
+
+    Interrupt program (0x06):
+
+        +=================================+
+        | data (byte array of any length) |
+        +=================================+
+
+    Set speed (0x07):
+
+        +====================+
+        | 2 byte speed value |
+        +====================+
+
+COMMAND RESPONSE PACKET (device -> server -> client):
+
+    Response packet bodies for light strip (device id 0x01):
+
+    Get color (0x00):
+
+        +==========+==========+==========+
+        | 1 byte R | 1 byte G | 1 byte B |
+        +==========+==========+==========+
+
+    Get program (0x01):
+
+        +===================+
+        | 1 byte program ID |
+        +===================+
+
+        Notes:
+        1.  Program IDs are as follows:
+            Rainbow fade:   0x01
+            Rave:           0x02
+        
+    Get speed (0x02):
+
+        +====================+
+        | 2 byte speed value |
+        +====================+

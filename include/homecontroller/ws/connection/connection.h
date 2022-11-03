@@ -2,7 +2,6 @@
 
 #include "homecontroller/ws/ws_config.h"
 #include "homecontroller/net/ssl/connection/connection.h"
-#include "homecontroller/util/logger.h"
 
 #include <functional>
 #include <vector>
@@ -17,7 +16,7 @@ namespace ws {
             typedef std::function<void(const std::string&)> message_callback;
 
             connection(ws_conn_ptr ws_conn_ptr, net::ssl::conn_hdl tls_conn_hdl) 
-                : m_logger("ws::connection"), m_ws_conn_ptr(ws_conn_ptr), m_tls_conn_hdl(tls_conn_hdl), m_finished(false)
+                : m_ws_conn_ptr(ws_conn_ptr), m_tls_conn_hdl(tls_conn_hdl), m_finished(false)
             {}
 
             ~connection() {}
@@ -42,8 +41,6 @@ namespace ws {
             void on_fail(websocketpp::connection_hdl hdl);
             void on_close(websocketpp::connection_hdl hdl);
             void _on_message(websocketpp::connection_hdl hdl, server::message_ptr msg);
-
-            util::logger m_logger;
 
             ws_conn_ptr m_ws_conn_ptr;
             net::ssl::conn_hdl m_tls_conn_hdl;

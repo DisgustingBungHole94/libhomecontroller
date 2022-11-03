@@ -1,5 +1,6 @@
 #include "homecontroller/ws/connection/connection.h"
 
+#include "homecontroller/util/logger.h"
 #include "homecontroller/exception/exception.h"
 
 namespace hc {
@@ -38,7 +39,7 @@ namespace ws {
         try {
             m_ws_conn_ptr->send(msg, websocketpp::frame::opcode::TEXT);
         } catch(std::exception& e) {
-            m_logger.err("failed to send message: " + std::string(e.what()));
+            util::logger::err("failed to send message: " + std::string(e.what()));
         }
     }
 
@@ -47,7 +48,7 @@ namespace ws {
         try {
             m_ws_conn_ptr->close(websocketpp::close::status::going_away, reason);
         } catch(std::exception& e) {
-            m_logger.err("failed to close client: " + std::string(e.what()));
+            util::logger::err("failed to close websocket session: " + std::string(e.what()));
         }
     }
 
@@ -66,7 +67,7 @@ namespace ws {
         try {
             net::ssl::connection::conn_from_hdl(m_tls_conn_hdl)->send(data);
         } catch(exception& e) {
-            m_logger.err("send error: " + std::string(e.what()) + " (" + std::string(e.func()) + ")");
+            util::logger::err("send error: " + std::string(e.what()) + " (" + std::string(e.func()) + ")");
             m_finished = true;
 
             return std::make_error_code(std::errc::io_error);
@@ -84,7 +85,7 @@ namespace ws {
         try {
             net::ssl::connection::conn_from_hdl(m_tls_conn_hdl)->send(std::string(data, len));
         } catch(exception& e) {
-            m_logger.err("send error: " + std::string(e.what()) + " (" + std::string(e.func()) + ")");
+            util::logger::err("send error: " + std::string(e.what()) + " (" + std::string(e.func()) + ")");
 
             m_finished = true;
             return std::make_error_code(std::errc::io_error);
@@ -95,18 +96,18 @@ namespace ws {
 
     template<class config>
     void connection<config>::on_open(websocketpp::connection_hdl hdl) {
-        m_logger.dbg("client session started");
+        util::logger::dbg("websocket session started");
     }
 
     template<class config>
     void connection<config>::on_fail(websocketpp::connection_hdl hdl) {
-        m_logger.err("failed to start client session");
+        util::logger::err("failed to start websocket session");
         m_finished = true;
     }
 
     template<class config>
     void connection<config>::on_close(websocketpp::connection_hdl hdl) {
-        m_logger.dbg("client session finished");
+        util::logger::dbg("websocket session finished");
         m_finished = true;
     }
 

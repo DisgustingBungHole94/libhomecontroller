@@ -15,7 +15,9 @@ namespace ssl {
         public:
             server_connection(unique_ptr<SSL> ssl)
                 : connection(std::move(ssl)), m_timeout_disabled(false), m_needs_close(false), m_locked(false)
-            {}
+            {
+                reset_timer();
+            }
 
             ~server_connection() {}
 

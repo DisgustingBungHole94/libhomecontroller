@@ -1,6 +1,5 @@
 #pragma once
 
-#include "homecontroller/util/logger.h"
 #include "homecontroller/net/ssl/connection/server_connection.h"
 
 #include <netinet/in.h>
@@ -17,10 +16,7 @@ namespace ssl {
 
     class tls_server {
         public:
-            tls_server() 
-                : m_logger("tls_server")
-            {}
-            
+            tls_server() {}
             ~tls_server() {}
 
             void init(int port, const std::string& cert_file, const std::string& priv_key_file, int default_timeout);
@@ -63,8 +59,6 @@ namespace ssl {
             bool epoll_ctl_del(int fd);
 
             bool set_nonblocking(int fd);
-
-            util::logger m_logger;
 
             int m_socket;
             int m_epfd;

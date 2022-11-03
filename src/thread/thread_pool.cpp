@@ -1,5 +1,6 @@
 #include "homecontroller/thread/thread_pool.h"
 
+#include "homecontroller/util/logger.h"
 #include "homecontroller/exception/exception.h"
 
 #include <sstream>
@@ -18,7 +19,7 @@ namespace thread {
             m_threads.at(i) = std::thread(&thread_pool::worker_loop, this);
         }
 
-        m_logger.dbg("created " + std::to_string(num_threads) + " threads");
+        util::logger::dbg("created " + std::to_string(num_threads) + " threads");
     }
 
     void thread_pool::stop() {
@@ -57,7 +58,7 @@ namespace thread {
 
             std::thread::id id = std::this_thread::get_id();
 
-            //m_logger.dbg("thread [" + thread_id_to_string(id) + "] started job");
+            util::logger::dbg("thread [" + thread_id_to_string(id) + "] started job");
 
             job job = m_job_queue.front();
             m_job_queue.pop();
@@ -65,7 +66,7 @@ namespace thread {
             lock.unlock();
             job();
 
-            //m_logger.dbg("thread [" + thread_id_to_string(id) + "] finished job");
+            util::logger::dbg("thread [" + thread_id_to_string(id) + "] finished job");
         }
     }
 

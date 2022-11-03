@@ -65,16 +65,13 @@ namespace ssl {
 
         SSL_set_fd(ssl.get(), sd);
 
-        int res = SSL_connect(ssl.get());
-        if (res != 1) {
-            if (res == 0) {
-                close(sd);
-            }
-
+        client_conn_ptr client = std::make_shared<client_connection>(std::move(ssl));
+        if (!client->handshake()) {
+            client->close();
             throw exception("tls handshake failed", "hc::net::ssl::tls_context::connect");
         }
 
-        return std::make_shared<client_connection>(std::move(ssl));
+        return client;
     }
 
 }

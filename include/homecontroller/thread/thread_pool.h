@@ -1,7 +1,5 @@
 #pragma once
 
-#include "homecontroller/util/logger.h"
-
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -17,7 +15,7 @@ namespace thread {
             typedef std::function<void()> job;
 
             thread_pool() 
-                : m_logger("thread_pool"), m_should_terminate(false)    
+                : m_should_terminate(false)    
             {}
 
             ~thread_pool() {}
@@ -31,8 +29,6 @@ namespace thread {
             void worker_loop();
 
             std::string thread_id_to_string(std::thread::id id);
-
-            util::logger m_logger;
 
             std::mutex m_mutex;
             std::condition_variable m_cv;

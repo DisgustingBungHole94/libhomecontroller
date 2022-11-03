@@ -23,22 +23,22 @@ namespace http {
             ~http_request() {}
 
             void set_method(const std::string& method) { m_method = method; }
-            const std::string& get_method() { return m_method; }
+            const std::string& get_method() const { return m_method; }
 
             void set_url(const std::string& url) { m_url = url; }
-            const std::string& get_url() { return m_url; }
+            const std::string& get_url() const { return m_url; }
 
             void set_body(const std::string& body) { m_body = body; }
-            const std::string& get_body() { return m_body; }
+            const std::string& get_body() const { return m_body; }
 
             void set_should_upgrade(bool should_upgrade) { m_should_upgrade = should_upgrade; }
-            bool should_upgrade() { return m_should_upgrade; }
+            bool should_upgrade() const { return m_should_upgrade; }
 
             void set_headers(const std::map<std::string, std::string>& headers) { m_headers = headers; }
             void add_header(const std::string& name, const std::string& value);
-            bool get_header(const std::string& name, std::string& value_ref);
+            bool get_header(const std::string& name, std::string& value_ref) const;
 
-            std::string str();
+            std::string str() const;
 
         private:
             std::string m_method;
